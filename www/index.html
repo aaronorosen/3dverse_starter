@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8"/>
+        <title>MysticVerse</title>
+        <LINK rel="stylesheet" type="text/css" href="style.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link type="text/css" rel="stylesheet" href="main.css">
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>            
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+        <script src="https://3dverse.com/sdk/dist/SDK3DVerse.js"></script>
+		<script src="https://3dverse.com/sdk/dist/SDK3DVerse_LabelDisplay_Ext.js"></script>
+
+        <script src="./MysticVerse_files/qrcode.js"></script>
+        <script src="./MysticVerse_files/labelsDescriptifs.js"></script>
+        <script src="./MysticVerse_files/three.js"></script>
+
+        <script src="./MysticVerse_files/nipplejs.js"></script>
+        <script src="./MysticVerse_files/swiper.min.js"></script>
+        <script src="./MysticVerse_files/VirtualJoystick.js"></script>
+        <script src="./MysticVerse_files/SpeedSwiper.js"></script>
+        <script type="module" src="./MysticVerse_files/main.js"></script>
+        <script src="./MysticVerse_files/feather-icons"></script>
+    </head>
+
+    <body>
+        <div class="container" style="padding: 0;">
+            <div id="message">Loading...</div>
+            <!-- The Modal -->
+            <div class="modal fade" id="myModal">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <!-- Modal Header -->
+                        <div class="modal-header">
+                        <h4 class="modal-title">Loading...</h4>
+                        </div>
+
+                        <!-- Modal body -->
+                        <div class="modal-body">
+                                <p id="waitingBox">Please Wait</p>
+                            <div class="progress" id="Bar">
+                                <div id="pBar" class="progress-bar progress-bar-striped progress-bar-animated"  style="width:1%"></div>
+                            </div>
+                            <div>
+                                <img src='img/manuel.jpg' width='100%'>
+                            </div>
+                            <div>
+                                <input type="button" class="btn btn-start" style="visibility: hidden;" value="Start" id="Start">
+                            </div>
+                        </div>
+                        
+                        <!-- Modal footer -->
+                        <div class="modal-footer">
+                        </div>
+    
+                    </div>
+                </div>
+            </div>
+
+            <canvas tabindex="1" id="display_canvas" style="visibility: hidden;"></canvas>
+
+            <video id="harwareAccelerator" autoPlay muted width="1280" height="720"></video>
+
+            <div id="DownMenu" style="visibility: hidden;">
+                
+                <button class="btn btn-round" id="prevBt">
+                    <i data-feather="arrow-left"></i>
+                </button>
+                <button class="btn btn-round" id="nextBt">
+                    <i data-feather="arrow-right"></i>
+                </button>
+                <input type="button" class="btn btn-share" value="Share" id="share">
+            </div>
+
+            <div id="ShareDiv" class="text-center">
+                <div id="qrcode"></div>
+                <div id="notifs"></div>
+            </div>
+            
+            <div class="joystick">
+                <div id="speed-container">
+                    <span>speed</span>
+                    <hr>
+                    <div class="swiper-container number__slider-wrapper">
+                        <span class="number__slider-indicator"></span>
+                        <div class="swiper-wrapper number__slider"></div>
+                    </div>
+                </div>
+                <div id="left-joystick"></div>
+                <div id="right-joystick"></div>
+                <div id="height-joystick"></div>
+            </div>
+
+            <div class="bg-1 text-center" id="PanelDescriptif">
+
+                <button class="btn btn-close" id="CloseDescriptif">
+                    <i data-feather="x-circle"></i>
+                </button>
+
+                <h2 id="titre">Form control: textarea</h2>	
+                <span class="badge" id="badgeId">1</span>
+                <p id="sousTitre">The form below contains a textarea for comments:</p>
+                <form>
+                    <div class="form-group">
+                        <div id="comment"></div>
+                    </div>
+                </form>
+            </div>
+            <!--
+            <audio src="audio/track1.mpeg" type="audio/mpeg" id="myAudio">
+            
+                <p>Votre navigateur ne prend pas en charge l'audio HTML. Voici un
+                   un lien vers le fichier audio pour le 
+                   télécharger.</p>
+            </audio>
+            -->
+        </div>
+        <div id="overlay">
+		</div>
+
+    </body>
+</html>
