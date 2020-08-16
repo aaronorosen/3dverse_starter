@@ -4,6 +4,29 @@ import { GUI } from 'https://threejs.org/examples/jsm/libs/dat.gui.module.js';
 
 import { FirstPersonControls } from 'https://threejs.org/examples/jsm/controls/FirstPersonControls.js';
 
+import {
+    CSS3DRenderer,
+    CSS3DObject
+} from 'https://threejs.org/examples/jsm/renderers/CSS3DRenderer.js';
+
+
+var Element = function ( id, x, y, z, ry ) {
+  var div = document.createElement( 'div' );
+  div.style.width = '480px';
+  div.style.height = '360px';
+  div.style.backgroundColor = '#000';
+  div.style.zindex = 999;
+  var iframe = document.createElement( 'iframe' );
+  iframe.style.width = '480px';
+  iframe.style.height = '360px';
+  iframe.style.border = '0px';
+  iframe.src = [ 'https://www.youtube.com/embed/', id, '?rel=0'   ].join( '' );
+  div.appendChild( iframe );
+  var object = new CSS3DObject( div );
+  object.position.set( x, y, z );
+  object.rotation.y = ry;
+  return object;
+};
 
 var n=0;
 var tps =0;
@@ -421,6 +444,14 @@ camera.add( listener );
 
 scene = new THREE.Scene();
 scene.fog = new THREE.FogExp2( 0x000000, 0.0025 );
+
+// Add in video test.
+var group = new THREE.Group();
+group.add( new Element( 'xBOqwRRj82A', 1000, 0, 0, 0 ) );
+scene.add( group );
+
+
+
 
 light = new THREE.DirectionalLight( 0xffffff );
 light.position.set( 0, 0.5, 1 ).normalize();
