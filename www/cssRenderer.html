@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+        <meta charset="utf-8"/>
+        <title>3DVerse SDK Sample : CSS Renderer</title>
+        <script src="https://3dverse.com/sdk/dist/SDK3DVerse.js"></script>
+        <script src="https://3dverse.com/sdk/dist/SDK3DVerse_ThreeJS_Ext.js"></script>
+        <script src="./CSS3DRenderer.js"></script>
+
+        <script>
+            const user      = 'demo';
+            const password  = 'demo';
+            const sceneUUID = '3d1578da-7529-4f73-ae34-c438c09d2ade';
+
+            //------------------------------------------------------------------
+            window.addEventListener('load', async () =>
+            {
+                const canvas    = document.getElementById('display_canvas');
+                const container = document.getElementById('container');
+                SDK3DVerse.webAPI.setURL('https://3dverse.com/api')
+
+                const connectionInfo = await SDK3DVerse.webAPI.startSession(user, password, sceneUUID);
+
+                SDK3DVerse.notifier.on('onLoadingStarted', () => document.getElementById("message").innerHTML = "Connecting...");
+                SDK3DVerse.notifier.on('onLoadingProgress', (status) => document.getElementById("message").innerHTML = status.message);
+                SDK3DVerse.notifier.on('onLoadingEnded', (status) => document.getElementById("message").innerHTML = status.message);
+
+                SDK3DVerse.setupDisplay(canvas);
+                SDK3DVerse.startStreamer(connectionInfo);
+
+                await SDK3DVerse.installExtension(SDK3DVerse_ThreeJS_Ext);
+                createContext(canvas, container);
+            });
+
+            //------------------------------------------------------------------
+            function createContext(canvas, container)
+            {
+                const THREE = SDK3DVerse.threeJS.THREE;
+
+                // Classes
+                const { CSS3DObject, CSS3DSprite, CSS3DRenderer } = importCssRenderer(THREE);
+                const Element = function ( id, x, y, z, ry )
+                {
+                    const div = document.createElement( 'div' );
+                    div.style.width = '480px';
+                    div.style.height = '360px';
+                    div.style.backgroundColor = '#000';
+                    const iframe = document.createElement( 'iframe' );
+                    iframe.style.width = '480px';
+                    iframe.style.height = '360px';
+                    iframe.style.border = '0px';
+                    iframe.src = [ 'https://www.youtube.com/embed/', id, '?rel=0'   ].join( '' );
+                    div.appendChild( iframe );
+                    const object = new CSS3DObject( div );
+                    object.position.set( x, y, z );
+                    object.rotation.y = ry;
+                    return object;
+                }
+
+                // Instanciate classes
+                const scene     = new THREE.Scene();
+                const renderer  = new CSS3DRenderer();
+                renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+
+                renderer.domElement.style.position = 'absolute';
+                renderer.domElement.style.top = 0;
+                container.appendChild( renderer.domElement );
+
+                const group     = new THREE.Group();
+                //group.add( new Element( 'xBOqwRRj82A', 0, 0, 240, 0 ) );
+                //group.add( new Element( 'x4q86IjJFag', 240, 0, 0, Math.PI / 2 ) );
+                group.add( new Element( 'JhngfOK_2-0', 0, 0, - 240, Math.PI ) );
+                //group.add( new Element( 'Grg3461lAPg', - 240, 0, 0, - Math.PI / 2 ) );
+                scene.add( group );
+
+                // Render events
+                SDK3DVerse.notifier.on('onCanvasResized', (width, height) => renderer.setSize(width, height));
+                SDK3DVerse.notifier.on('onFramePostRender', () =>
+                {
+                    const viewports = SDK3DVerse.engineAPI.cameraAPI.getActiveViewports();
+                    for(const viewport of viewports)
+                    {
+                        const camera = viewport.threeJScamera;
+                        renderer.render(scene, camera);
+                    }
+                });
+            }
+        </script>
+    </head>
+
+    <body>
+        <div id="container">
+            <canvas tabindex="1" id="display_canvas" width="1280" height="720"></canvas>
+        </div>
+        <div id="message">Loading...</div>
+    </body>
+</html>
