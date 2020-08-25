@@ -10,7 +10,8 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>            
         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
         <script src="https://3dverse.com/sdk/dist/SDK3DVerse.js"></script>
-		<script src="https://3dverse.com/sdk/dist/SDK3DVerse_LabelDisplay_Ext.js"></script>
+        <script src="https://3dverse.com/sdk/dist/SDK3DVerse_LabelDisplay_Ext.js"></script>
+        <script src="https://3dverse.com/sdk/dist/SDK3DVerse_ThreeJS_Ext.js"></script>
 
         <script src="./MysticVerse_files/qrcode.js"></script>
         <script src="./MysticVerse_files/labelsDescriptifs.js"></script>
@@ -20,8 +21,29 @@
         <script src="./MysticVerse_files/swiper.min.js"></script>
         <script src="./MysticVerse_files/VirtualJoystick.js"></script>
         <script src="./MysticVerse_files/SpeedSwiper.js"></script>
+        <script src="./MysticVerse_files/CSS3DRenderer.js"></script>
         <script type="module" src="./MysticVerse_files/main.js"></script>
         <script src="./MysticVerse_files/feather-icons"></script>
+
+
+        <style>
+            .video-element
+            {
+                pointer-events: none;
+                visibility: hidden;
+                opacity: 0;
+                transition: visibility 0s linear 300ms, opacity 300ms;
+            }
+
+            .visible
+            {
+                visibility: visible;
+                opacity: 1;
+                transition: visibility 0s linear 0s, opacity 300ms;
+            }
+        </style>
+
+
     </head>
 
     <body>
@@ -57,8 +79,11 @@
                     </div>
                 </div>
             </div>
-
-            <canvas tabindex="1" id="display_canvas" style="visibility: hidden;"></canvas>
+        <div id="container">
+            <div class="canvas-container">
+              <canvas tabindex="1" id="display_canvas" style="visibility: hidden;"></canvas>
+          </div>
+        </div>
 
             <video id="harwareAccelerator" autoPlay muted width="1280" height="720"></video>
 

@@ -149,15 +149,16 @@ async function initSDK(canvas)
 	x = document.getElementById("myAudio");
 
 	document.getElementById("waitingBox").innerHTML = "Please wait -> Loading SDK";
-   
+
     var user        = 'demo';
     var password    = 'demo';
-	var sceneUUID   = '52dd1803-5a38-4bac-b17b-6c9f88513499';
-	var wsUUID 		= '3f363c33-90e6-46d5-895e-6d1da7f660da';
+	 var sceneUUID   = '52dd1803-5a38-4bac-b17b-6c9f88513499';
+    //var sceneUUID = 'ace4eda4-509d-4828-9737-e477900a6742'
+	 var wsUUID		= '3f363c33-90e6-46d5-895e-6d1da7f660da';
 
     SDK3DVerse.webAPI.setURL('https://3dverse.com/api');
-	
-	var login = await SDK3DVerse.webAPI.login(user,password);
+
+    var login = await SDK3DVerse.webAPI.login(user,password);
     var sceneList = await SDK3DVerse.webAPI.httpGet('workspace/listSessions', { workspaceUUID: wsUUID, token : SDK3DVerse.webAPI.apiToken });
     var sessionUUID="";
     if (sceneList[sceneUUID] != undefined){
@@ -187,7 +188,7 @@ async function initSDK(canvas)
 			top     : 0.0,
 			width   : 1.0,
 			height  : 1.0,
-			
+
 			defaultTransform        : {
 				position    : [-40.95592498779297, 9.733142852783203, 84.22504425048828],
 				orientation : [-0.046065255999565125, -0.25681939721107483, -0.012258878909051418, 0.9652806520462036],
@@ -202,9 +203,18 @@ async function initSDK(canvas)
 
     SDK3DVerse.installExtension(SDK3DVerse_LabelDisplay_Ext);
     SDK3DVerse.connectToEditor('ws://3dverse.com/editor-backend/');
+    await SDK3DVerse.onConnected();
+
+    await SDK3DVerse.installExtension(SDK3DVerse_ThreeJS_Ext);
+    await SDK3DVerse.onEditorConnected();
+
+    const screens = await resolveScreens();
+    console.log("SCreens...")
+    console.log(screens)
+    const container = document.getElementById('container');
+    createContext(canvas, container, screens);
 
     SDK3DVerse.notifier.on('sceneGraphReady', initConfigurator);
-	
 	//Session URL/Link
 	SDK3DVerse.webAPI.createLink = async function()
 	{
@@ -254,6 +264,192 @@ function SetSize()
 
 	//controls.handleResize();
 }
+
+            //------------------------------------------------------------------
+async function resolveScreens()
+{
+    const entities  = await SDK3DVerse.engineAPI.filterEntities({mandatoryComponents : ['scene_ref']});
+    const screens   = entities.filter(entity =>
+    {
+        const name = entity.getComponent('debug_name').value;
+        console.log("entity name: " + name)
+        const match = name.match(/#\[(.*)\]/);
+        if(!match)
+        {
+        //    return false;
+        }
+
+        //entity.screenID = match[1];
+        entity.screenID = 'HIlG2NKnsVA'
+        return true;
+    });
+
+    return screens;
+}
+//------------------------------------------------------------------
+async function createContext(canvas, container, screens)
+{
+    const THREE = SDK3DVerse.threeJS.THREE;
+
+    //--------------------------------------------------------------
+    const globalMatrix          = new THREE.Matrix4();
+    const viewMatrix            = new THREE.Matrix4();
+    const positionInGeometry    = new THREE.Vector3();
+
+    // Classes
+    const { CSS3DObject, CSS3DSprite, CSS3DRenderer } = importCssRenderer(THREE);
+    //--------------------------------------------------------------
+    const VideoElement = function (id, globalTransform)
+    {
+        // The plane where the video is rendered is actually sized by
+        // 2 units of width and height (2 squares in the debug lines) in its local space.
+        const planeWidth            = 2;
+        const planeHeight           = 2;
+
+        // In the scene, the plane entity is scaled with [16.0, 9.0, 1] in its 
+        // local_transform components to reproduce standard aspect ratio.
+        const planeScale            = globalTransform.scale;
+
+        // 1px in css3dRenderer is 1 unit in the 3dverse space (i.e. 1 square in the debug lines)
+        // Since 1 pixel for 1 unit would make a giant plane in the scene, we will scale it.
+        const pixelToUnitScale      = 400; // 100 pixel = 1 unit
+
+        const iframeURL             = ['https://www.youtube.com/embed/', id, '?rel=0' , '&autoplay=1'].join('');;
+
+        // We're going to apply the scale of the plane entity, on the dom's element width and height.
+        const div                   = document.createElement('div');
+        div.style.width             = (planeScale[0] * pixelToUnitScale) + 'px';
+        div.style.height            = (planeScale[1] * pixelToUnitScale) + 'px';
+        div.classList.add('video-element');
+        
+        const iframe                = document.createElement('iframe');
+        iframe.style.width          = (planeScale[0] * pixelToUnitScale) + 'px';
+        iframe.style.height         = (planeScale[1] * pixelToUnitScale) + 'px';
+        iframe.style.border         = '0px';
+        div.appendChild( iframe );
+
+        const object = new CSS3DObject( div );
+        object.position.fromArray(globalTransform.position);
+        object.quaternion.fromArray(globalTransform.orientation);
+
+        // The following statement will divide the scale by 50 to fit the plane, 
+        // since our unit scale is 100 and the plane is 2 unit of width and height
+        object.scale.fromArray(
+        [
+            1 / (pixelToUnitScale / planeWidth),    // X
+            1 / (pixelToUnitScale / planeHeight),   // Y
+            1                                       // Z
+        ]);
+        object.updateMatrixWorld();
+
+        object.isVisible = () =>
+        {
+            return div.classList.contains('visible');
+        };
+
+        object.setVisibility = (isVisible) =>
+        {
+            if(isVisible)
+            {
+                div.classList.add('visible');
+                iframe.src = iframeURL;
+            }
+            else
+            {
+                div.classList.remove('visible');
+                iframe.src = '';
+            }
+        };
+
+        return object;
+    }
+
+    //--------------------------------------------------------------
+    function isInsideGeometry(globalPosition, geometry)
+    {
+        globalMatrix.fromArray(geometry.getGlobalMatrix());
+        viewMatrix.getInverse(globalMatrix);
+
+        positionInGeometry.fromArray(globalPosition);
+        positionInGeometry.applyMatrix4(viewMatrix);
+
+        const dimensions = geometry.getComponent('box_geometry').dimension;
+
+        return Math.abs(positionInGeometry.x) < dimensions[0]
+            && Math.abs(positionInGeometry.y) < dimensions[1]
+            && Math.abs(positionInGeometry.z) < dimensions[2];
+    }
+
+    // Instanciate classes
+    const scene     = new THREE.Scene();
+    const renderer  = new CSS3DRenderer();
+    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+
+    // Define stylesheet of the renderer's div
+    renderer.domElement.style.position = 'absolute';
+    renderer.domElement.style.top = 0;
+    renderer.domElement.style.pointerEvents = 'none';
+    container.appendChild( renderer.domElement );
+
+    const videoElements = [];
+    for(const screenEntity of screens)
+    {
+        // Create a video element, with the plane entity global transform.
+        const videoElement      = new VideoElement(screenEntity.screenID, screenEntity.getGlobalTransform());
+
+        const children          = await SDK3DVerse.engineAPI.getEntityChildren(screenEntity);
+        videoElement.geometries = children.filter(entity => entity.isAttached('box_geometry'));
+
+        videoElements.push(videoElement);
+        scene.add(videoElement);
+    }
+    
+    // The main render function of css3d
+    SDK3DVerse.notifier.on('onFramePostRender', () =>
+    {
+        const viewports = SDK3DVerse.engineAPI.cameraAPI.getActiveViewports();
+        for(const viewport of viewports)
+        {
+            const camera = viewport.threeJScamera;
+            if(camera)
+            {
+                renderer.render(scene, camera);
+            }
+        }
+    });
+
+    // Canvas resize event
+    SDK3DVerse.notifier.on('onCanvasResized', (width, height) => renderer.setSize(width, height));
+
+    // This callback is triggered when any camera is moved
+    SDK3DVerse.notifier.on('OnCamerasUpdated', (cameras) =>
+    {
+        const currentViewportEnabled = SDK3DVerse.engineAPI.cameraAPI.currentViewportEnabled;
+        if(!currentViewportEnabled)
+        {
+            // No current viewport means the canvas has not been clicked
+            return;
+        }
+        
+        const globalTransform   = currentViewportEnabled.getTransform();
+
+        for(const videoElement of videoElements)
+        {
+            const isVisible = videoElement.isVisible();
+            const isInside  = videoElement.geometries.some(g => isInsideGeometry(globalTransform.position, g));
+
+            if(isInside && !isVisible)
+            {
+                videoElement.setVisibility(true);
+            }
+            else if (!isInside && isVisible)
+            {
+                videoElement.setVisibility(false);
+            }
+        }
+    });
+}
+
 
 //------------------------------------------------------------------------------
 async function initConfigurator()
