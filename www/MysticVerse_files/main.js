@@ -179,7 +179,7 @@ async function initSDK(canvas)
 		}]);
 
     SDK3DVerse.startStreamer(connectionInfo);
-    SDK3DVerse.connectToEditor('ws://3dverse.com/editor-backend/');
+    SDK3DVerse.connectToEditor('wss://3dverse.com/editor-backend/');
 
 	window.addEventListener("orientationchange", SetSize, false);
 	window.addEventListener("resize", SetSize, false);
