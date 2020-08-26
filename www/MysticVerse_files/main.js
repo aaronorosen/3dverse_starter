@@ -150,36 +150,18 @@ async function initSDK(canvas)
 
 	document.getElementById("waitingBox").innerHTML = "Please wait -> Loading SDK";
 
-    var user        = 'demo';
-    var password    = 'demo';
-	 var sceneUUID   = '52dd1803-5a38-4bac-b17b-6c9f88513499';
-    //var sceneUUID = 'ace4eda4-509d-4828-9737-e477900a6742'
-	 var wsUUID		= '3f363c33-90e6-46d5-895e-6d1da7f660da';
+    var user        = 'NooSens';
+    var password    = 'BurningMan2020';
+    var sceneUUID = '41af9da4-b294-4dbe-a529-c414d117e4e4'
 
     SDK3DVerse.webAPI.setURL('https://3dverse.com/api');
-
-    var login = await SDK3DVerse.webAPI.login(user,password);
-    var sceneList = await SDK3DVerse.webAPI.httpGet('workspace/listSessions', { workspaceUUID: wsUUID, token : SDK3DVerse.webAPI.apiToken });
-    var sessionUUID="";
-    if (sceneList[sceneUUID] != undefined){
-        for (var i in sceneList[sceneUUID]['sessions'])
-        {
-            sessionUUID = i;
-        }
-    }
-
-    var connectionInfo;
-    if (sessionUUID == ""){
-        connectionInfo = await SDK3DVerse.webAPI.startSession(user, password, sceneUUID);
-    } else{
-        connectionInfo = await SDK3DVerse.webAPI.joinSession(sessionUUID);
-	}
+    var connectionInfo = await SDK3DVerse.webAPI.startSession(user, password, sceneUUID);
 
     SDK3DVerse.notifier.on('onLoadingStarter', 	() 			=> document.getElementById("message").innerHTML = "Connecting...");
     SDK3DVerse.notifier.on('onLoadingProgress', (status) 	=> document.getElementById("message").innerHTML = status.message);
     SDK3DVerse.notifier.on('onLoadingEnded', 	(status) 	=> document.getElementById("message").innerHTML = status.message);
 
-	SDK3DVerse.setupDisplay(canvas);
+	 SDK3DVerse.setupDisplay(canvas);
 
     SDK3DVerse.setViewports(
 		[{
@@ -197,22 +179,22 @@ async function initSDK(canvas)
 		}]);
 
     SDK3DVerse.startStreamer(connectionInfo);
+    SDK3DVerse.connectToEditor('ws://3dverse.com/editor-backend/');
 
 	window.addEventListener("orientationchange", SetSize, false);
 	window.addEventListener("resize", SetSize, false);
 
     SDK3DVerse.installExtension(SDK3DVerse_LabelDisplay_Ext);
-    SDK3DVerse.connectToEditor('ws://3dverse.com/editor-backend/');
     await SDK3DVerse.onConnected();
 
     await SDK3DVerse.installExtension(SDK3DVerse_ThreeJS_Ext);
     await SDK3DVerse.onEditorConnected();
 
-    const screens = await resolveScreens();
-    console.log("SCreens...")
-    console.log(screens)
-    const container = document.getElementById('container');
-    createContext(canvas, container, screens);
+    //const screens = await resolveScreens();
+    //console.log("SCreens...")
+    //console.log(screens)
+    //const container = document.getElementById('container');
+    //createContext(canvas, container, screens);
 
     SDK3DVerse.notifier.on('sceneGraphReady', initConfigurator);
 	//Session URL/Link
@@ -256,7 +238,6 @@ function SetSize()
 	//$('#display_canvas').height(height);
 
 	SDK3DVerse.setResolution(820, 450);
-	
 	//camera.aspect = window.innerWidth / window.innerHeight;
 	//camera.updateProjectionMatrix();
 
@@ -268,6 +249,15 @@ function SetSize()
             //------------------------------------------------------------------
 async function resolveScreens()
 {
+
+    /*
+    $.get("https://django-api.immexia.xyz/mysticverse/list_entities", function(resp) {
+        var video_mappings = JSON.parse(resp);
+        console.log(video_mappings)
+        alert("HERE")
+    });
+    */
+
     const entities  = await SDK3DVerse.engineAPI.filterEntities({mandatoryComponents : ['scene_ref']});
     const screens   = entities.filter(entity =>
     {
@@ -276,7 +266,7 @@ async function resolveScreens()
         const match = name.match(/#\[(.*)\]/);
         if(!match)
         {
-        //    return false;
+            return false;
         }
 
         //entity.screenID = match[1];
